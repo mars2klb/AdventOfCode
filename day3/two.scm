@@ -1,0 +1,30 @@
+(set! *arguments* (flatten (list *arguments* "two")))
+(load "one.scm")
+
+(define (check-row grid offset left)
+  (cond ((= left 0) #t)
+	((= 1 (vector-ref grid offset)) (check-row grid (+ 1 offset) (- left 1)))
+	(else #f)))
+
+(define (unique? grid claim)
+  (let ((x (claim:x claim))
+	(y (claim:y claim))
+	(w (claim:width claim))
+	(h (claim:height claim)))
+    (let loop ((start (offset x y *dimensions*))
+	       (rows 0))
+      (if (not (check-row grid start w)) #f
+	  (if (< rows (- h 1)) (loop (offset x (+ y 1 rows) *dimensions*) (+ rows 1)) #t)))))
+
+(define (find-unique grid claims)
+  (cond ((null? claims) '())
+	((unique? grid (car claims)) (car claims))
+	(else (find-unique grid (cdr claims)))))
+
+(let* ((claims (map ponder *input*))
+       (dim (get-dimensions claims 0))
+       (grid (make-vector (* dim dim) 0)))
+  (set! *dimensions* dim)
+  (format #t "dimensions: ~Ax~A~%" *dimensions* *dimensions*)
+  (mark grid claims)
+  (format #t "unique: ~A~%" (claim:id (find-unique grid claims))))
