@@ -1,0 +1,87 @@
+(load-from-library "regex")
+(load-from-library "pretty-print")
+
+(define *input* (with-input-from-file (car *arguments*) read-file))
+(define *input-rgx* (re-comp "\\([0-9]+\\),.\\([0-9]*\\)"))
+
+(define (x point) (car point))
+(define (y point) (cdr point))
+
+(define (get-tag point)
+  (format #f "~A" (string-digest (format #f "~A" point))))
+
+(define (parse x)
+  (let ((matches (re-match *input-rgx* x)))
+    (if (not matches) (error "failed to parse entry" x)
+	(let ((offsets (cdr matches)))
+	  (cons (string->number (substring x (caar offsets) (cadar offsets)))
+		(string->number (substring x (caar (cdr offsets)) (cadar (cdr offsets)))))))))
+
+(define (get-dimensions coords max)
+  (if (null? coords) (cons (+ 1 (x max)) (+ 1 (y max)))
+      (let ((point (car coords)))
+	(cond ((< (x max) (x point)) (get-dimensions (cdr coords) (cons (x point) (y max))))
+	      ((< (y max) (y point)) (get-dimensions (cdr coords) (cons (x max) (y point))))
+	      (else
+	       (get-dimensions (cdr coords) max))))))
+
+(define (distance-from point1 point2)
+  (+ (abs (- (x point1) (x point2)))
+     (abs (- (y point1) (y point2)))))
+
+(define (offset point width)
+  (+ (x point) (* (y point) width)))
+
+(define (coord delta width)
+  (if (= delta 0) (cons 0 0)
+      (cons (remainder delta width)
+	    (quotient delta width))))
+
+(define (mark-point point origin canvas)
+  (let* ((d (distance-from point origin))
+	 (grid (cdr canvas))
+	 (x (cdr (vector-ref grid (offset point (caar canvas)))))
+	 (tag (get-tag origin)))
+    (cond ((equal? point origin) (vector-set! grid (offset point (caar canvas)) (cons "X" d)))
+	  ((or (= 0 x) (< d x)) (vector-set! grid (offset point (caar canvas)) (cons tag d)))
+	  ((= x d) (vector-set! grid (offset point (caar canvas)) (cons "." d))))
+    (cons (car canvas) grid)))
+
+(define (mark-entry origin canvas index)
+  (if (> index (- (vector-length (cdr canvas)) 1)) canvas
+      (mark-entry origin (mark-point (coord index (x (car canvas))) origin canvas) (+ 1 index))))
+
+(define (mark entries canvas)
+  (if (null? entries) canvas
+      (mark (cdr entries) (mark-entry (car entries) canvas 0))))
+
+(define (count-closest entry points count)
+  (if (null? points) count
+      (if (equal? (caar points) entry) (count-closest entry (cdr points) (+ 1 count))
+	  (count-closest entry (cdr points) count))))
+
+(define (most-prolific-count entries canvas most)
+  (if (null? entries) most
+      (let ((c (count-closest (car entries) (vector->list (cdr canvas)) 0)))
+	(if (> c most) (most-prolific-count (cdr entries) canvas c)
+	    (most-prolific-count (cdr entries) canvas most)))))
+
+(define (dump grid width offset)
+  (if (null? grid) #f
+      (begin
+	(format #t " ~1A" (caar grid))
+	(if (and (= 0 (modulo offset width))) (newline))
+	(dump (cdr grid) width (+ 1 offset)))))
+
+(let* ((coords (map parse *input*))
+       (size (get-dimensions coords '(0 . 0)))
+       (middle (cons (/ (x size) 2) (/ (y size) 2)))
+       (canvas (cons size (make-vector (* (x size) (y size)) '("-" . 0))))
+       (grid (cdr (mark coords canvas))))
+  ;; (format #t "COORDS: ~A~%" coords)
+  ;; (for-each (lambda (c) (format #t " ~A: ~A~%" c (get-tag c *test-tags*))) coords)
+  (format #t "size: ~A (~D)~%" size (vector-length (cdr canvas)))
+  ;; (format #t "grid: ") (pp (vector->list grid)) (newline)
+  ;; (format #t "middle: ~A~%" middle)
+  ;; (dump (vector->list grid) (x (car canvas)) 1)
+  (format #t "most prolific count: ~A~%" (- (most-prolific-count (map get-tag coords) canvas 0) 1)))
