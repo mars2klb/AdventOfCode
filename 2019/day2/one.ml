@@ -21,4 +21,4 @@ let () =
              |> String.split_on_char ','
              |> List.map int_of_string
   in
-  Array.iter (Printf.printf "%d ") (run (Array.of_list data))
+  Printf.printf "Result: %d\n" (run (Array.of_list data)).(0)
