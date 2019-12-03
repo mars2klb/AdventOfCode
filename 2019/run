@@ -1,0 +1,10 @@
+#!/bin/sh
+
+day=day$1
+command=$2
+
+[ -z "$command" ] && command=run
+
+pushd $day
+BIN=$day mk -f ../mkfile $command
+popd

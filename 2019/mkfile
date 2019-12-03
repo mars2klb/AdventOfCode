@@ -11,7 +11,10 @@ two.cmx: one.cmx
 	ocamlopt -c $stem.ml
 
 clean:V:
-	rm -f $BIN *.cmx *.cmi *.o in_channel.ml
+	rm -f *.cmx *.cmi *.o in_channel.ml
+
+nuke:V: clean
+	rm -f $BIN
 
 run:V: $BIN
 	./$BIN
