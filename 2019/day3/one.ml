@@ -14,57 +14,50 @@ let rec unseen node list =
                   then false
                   else unseen node rest
 
-(* let find_boundaries lines =
- *   let minx = ref 0 in
- *   let maxx = ref 0 in
- *   let miny = ref 0 in
- *   let maxy = ref 0 in
- *   let process node =
- *     match split node with
- *     | 'U', value -> maxy := !maxy + value
- *     | _ -> ()
- *   in
- *   List.map process String.split_on_char ',' *)
-
 let walk node origin =
-  let path = [] in
-  let x = origin.[0] in
-  let y = origin.[1] in
+  let path = ref [] in
+  let x, y = origin in
   match node with
   | 'U', value -> for i = y to (y + value) do
-                    if unseen [x, y + i] path
-                    then [x, y + i]::path
+                    if unseen [x, y + i] !path
+                    then path := [x, y + i] :: !path
                   done
   | 'D', value -> for i = y to (y - value) do
-                    if unseen [x, y - i] path
-                    then [x, y - i]::path
+                    if unseen [x, y - i] !path
+                    then path := [x, y - i] :: !path
                   done
   | 'L', value -> for i = x to (x - value) do
-                    if unseen [x - i, y] path
-                    then [x - i, y]::path
+                    if unseen [x - i, y] !path
+                    then path:= [x - i, y] :: !path
                   done
   | 'R', value -> for i = x to (x + value) do
-                    if unseen [x + i, y] path
-                    then [x + i, y]::path
+                    if unseen [x + i, y] !path
+                    then path := [x + i, y] :: !path
                   done
-  | _ -> Exit
+  | _ -> ()
 
 let draw line =
-  let x = ref 0 in
-  let y = ref 0 in
-  let path = [] in
+  let path = ref [] in
   let rec work node nodes =
-    match node with
-    | [] -> path
-    | [node] -> (walk (split node) [0,0])::path
+    match nodes with
+    | [] -> !path
+    | [node] -> path := (walk (split node) (0,0)) :: !path; !path
     | hd :: rest -> work hd rest
   in
-  work [] String.split_on_char ',' line
-
-let wrangle_lines lines =
-  
+  work "" (String.split_on_char ',' line)
 
 let () =
   let lines = In_channel.read_lines "test" in
-  let dimensions = find_boundaries lines in
-  Array.iter (Printf.printf "Result: %s\n") (Array.of_list lines)
+  let dimensions = List.map draw lines in
+  let print_line line =
+    List.iter (fun x -> Printf.printf "%c, %c\n" x.[0] x.[1]) line
+  in
+  List.map print_line dimensions
+  (* for i = 0 to List.length dimensions do
+   *   let line = dimensions.(i) in
+   *   Printf.printf "list length: %d\n" (List.length line)
+   *   (\* for j = 0 to List.length dimensions.[i] do
+   *    *   Printf.printf "-> %d,%d\n" dimensions.[i].[j]
+   *    * done *\)
+   * done
+   * (\* List.map (Printf.printf "Result: %d\n") dimensions.[0] *\) *)
