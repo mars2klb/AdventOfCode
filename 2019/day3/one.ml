@@ -1,3 +1,6 @@
+type command = { direction : char; steps : int }
+type point = { x : int; y : int }
+
 let split node =
   let opcode = node.[0] in
   let value = String.split_on_char opcode node
@@ -5,7 +8,7 @@ let split node =
               |> List.hd
               |> int_of_string
   in
-  opcode, value
+  {direction=opcode; steps=value}
 
 let rec unseen node list =
   match list with
@@ -14,45 +17,55 @@ let rec unseen node list =
                   then false
                   else unseen node rest
 
-let walk node origin =
+let walk origin node =
+  Printf.printf "-origin- %d,%d\n" origin.x origin.y;
   let path = ref [] in
-  let x, y = origin in
+  let x = origin.x in
+  let y = origin.y in
   match node with
-  | 'U', value -> for i = y to (y + value) do
-                    if unseen [x, y + i] !path
-                    then path := [x, y + i] :: !path
-                  done
-  | 'D', value -> for i = y to (y - value) do
-                    if unseen [x, y - i] !path
-                    then path := [x, y - i] :: !path
-                  done
-  | 'L', value -> for i = x to (x - value) do
-                    if unseen [x - i, y] !path
-                    then path:= [x - i, y] :: !path
-                  done
-  | 'R', value -> for i = x to (x + value) do
-                    if unseen [x + i, y] !path
-                    then path := [x + i, y] :: !path
-                  done
-  | _ -> ()
+  | {direction='U'; steps} -> for i = 0 to steps do
+                                if unseen {x=x; y=(y + i)} !path
+                                then path := {x=x; y=(y + i)} :: !path; Printf.printf " U%d: %d, %d\n" steps x (y + i)
+                              done; !path
+  | {direction='D'; steps} -> for i = 0 to steps do
+                                if unseen {x=x; y=(y - i)} !path
+                                then path := {x=x; y=(y - i)} :: !path; Printf.printf " D%d: %d, %d\n" steps x (y - i)
+                              done; !path
+  | {direction='L'; steps} -> for i = 0 to steps do
+                                if unseen {x=(x - i); y=y} !path
+                                then path:= {x=(x - i); y=y} :: !path; Printf.printf " L%d: %d, %d\n" steps (x - i) y
+                              done; !path
+  | {direction='R'; steps} -> for i = 0 to steps do
+                                if unseen {x=(x + i); y=y} !path
+                                then path := {x=(x + i); y=y} :: !path; Printf.printf " R%d: %d, %d\n" steps (x + i) y
+                              done; !path
+  | _ -> !path
 
 let draw line =
   let path = ref [] in
-  let rec work node nodes =
+  let rec work origin node nodes =
     match nodes with
     | [] -> !path
-    | [node] -> path := (walk (split node) (0,0)) :: !path; !path
-    | hd :: rest -> work hd rest
+    | hd :: rest -> path := (walk origin (split hd)) @ !path; work (List.hd !path) hd rest
   in
-  work "" (String.split_on_char ',' line)
+  work {x=0; y=0} "" (String.split_on_char ',' line)
 
 let () =
   let lines = In_channel.read_lines "test" in
-  let dimensions = List.map draw lines in
-  let print_line line =
-    List.iter (fun x -> Printf.printf "%c, %c\n" x.[0] x.[1]) line
+  let dimensions = ref [] in
+  let rec measure lines =
+    match lines with
+    | [] -> ()
+    | hd :: rest -> dimensions := (draw hd) :: !dimensions; measure rest
   in
-  List.map print_line dimensions
+  measure lines;
+  let print_line line =
+    Printf.printf "origin: %d,%d\n" (List.hd line).x (List.hd line).y;
+    List.iter (fun p -> Printf.printf "  %d, %d\n" p.x p.y) line
+    (* Printf.printf "%d, %d\n" line.x line.y *)
+  in
+  (* print_line ["no"] *)
+  List.iter print_line !dimensions
   (* for i = 0 to List.length dimensions do
    *   let line = dimensions.(i) in
    *   Printf.printf "list length: %d\n" (List.length line)
