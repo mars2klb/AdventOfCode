@@ -76,7 +76,7 @@ let draw line =
   work {x=0; y=0} "" (String.split_on_char ',' line)
 
 let () =
-  let lines = In_channel.read_lines "input" in
+  let lines = In_channel.read_lines "test" in
   let dimensions = ref [] in
   let rec measure lines =
     match lines with
