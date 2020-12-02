@@ -5,6 +5,21 @@ command=$2
 
 [ -z "$command" ] && command=run
 
-pushd $day >/dev/null
-BIN=$day mk -f ../mkfile $command
-popd >/dev/null
+case "$command" in
+    stub) if [ ! -d "$day" ]; then
+              mkdir $day
+              ( cat <<EOF
+let () =
+  let data = In_channel.read_lines "input"
+           |> List.map int_of_string in
+EOF
+              ) >> $day/one.ml
+              touch $day/two.ml $day/test $day/instructions.troff $day/input
+          fi
+          ;;
+    *)
+        pushd $day >/dev/null
+        BIN=$day mk -f ../mkfile $command
+        popd >/dev/null
+        ;;
+esac
