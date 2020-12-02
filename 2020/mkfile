@@ -1,0 +1,20 @@
+$BIN: in_channel.cmx one.cmx two.cmx
+	ocamlopt -o $target $prereq
+
+in_channel.ml: ../in_channel.ml
+	cp $prereq $target
+
+runner.cmx: one.cmx two.cmx
+one.cmx: in_channel.cmx
+two.cmx: one.cmx
+%.cmx : %.ml
+	ocamlopt -c $stem.ml
+
+clean:V:
+	rm -f *.cmx *.cmi *.o in_channel.ml
+
+nuke:V: clean
+	rm -f $BIN
+
+run:V: $BIN
+	./$prereq
