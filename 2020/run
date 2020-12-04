@@ -8,13 +8,14 @@ command=$2
 case "$command" in
     stub) if [ ! -d "$day" ]; then
               mkdir $day
+              for x in one two; do
               ( cat <<EOF
 let () =
-  let data = In_channel.read_lines "input"
-           |> List.map int_of_string in
+  let data = In_channel.read_lines "input" in
 EOF
-              ) >> $day/one.ml
-              touch $day/two.ml $day/test $day/instructions.troff $day/input
+              ) >> $day/${x}.ml
+              done
+              touch $day/test $day/instructions.troff $day/input
           fi
           ;;
     *)
