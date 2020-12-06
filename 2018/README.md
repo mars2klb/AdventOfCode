@@ -1,6 +1,5 @@
 # Advent of Code 2018
-
-Here's my cheesy contribution.
+## attempt in scheme
 
 I'm writing against Scheme 9 From Empty Space
 
