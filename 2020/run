@@ -11,7 +11,7 @@ case "$command" in
               for x in one two; do
               ( cat <<EOF
 let () =
-  let data = In_channel.read_lines "input" in
+  let data = In_channel.read_lines "test" in
 EOF
               ) >> $day/${x}.ml
               done
