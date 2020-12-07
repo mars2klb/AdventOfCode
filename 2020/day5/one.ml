@@ -4,7 +4,6 @@ let lr_constraints = (0, 7)
 let explode s = List.init (String.length s) (String.get s)
 
 let compute code lower upper constraints =
-  let min, max = constraints in
   let rec iterate codes value last =
     let minv, maxv = value in
     let delta = int_of_float (ceil (float_of_int (maxv - minv) /. 2.0)) in
@@ -16,7 +15,7 @@ let compute code lower upper constraints =
            | x when x = upper -> maxv
            | _ as x -> raise (Failure ("bad code: " ^ Char.escaped x))
   in
-  iterate (explode code) (min, max) 'x'
+  iterate (explode code) constraints 'x'
 
 let handle seatcode =
   let fb = String.sub seatcode 0 7 in
