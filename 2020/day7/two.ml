@@ -1,3 +1,7 @@
+let print_bag bag =
+  let count, name = bag in
+  string_of_int count ^ ":" ^ name
+
 let table = Hashtbl.create 1024
 
 let parse entry =
@@ -9,11 +13,12 @@ let parse entry =
         let inner = Str.matched_group 2 rest in
         let inner_count = Str.matched_group 1 rest in
         let entry = (int_of_string inner_count, inner) in
-        try
-          let bags = Hashtbl.find table outer in
-          Hashtbl.remove table outer;
-          Hashtbl.add table outer (bags @ [entry])
-        with Not_found -> Hashtbl.add table outer [entry]
+        (try
+           let bags = Hashtbl.find table outer in
+           Hashtbl.remove table outer;
+           Hashtbl.add table outer (bags @ [entry])
+         with Not_found -> Hashtbl.add table outer [entry]);
+        extract (String.trim (Str.string_after rest (Str.match_end ())))
     in
     extract (String.trim (Str.string_after line (Str.match_end ())))
 
@@ -23,19 +28,13 @@ let contents bag =
     Hashtbl.find table b
   with Not_found -> []
 
-let rec descend bags =
-  List.map (fun x -> contents x) bags
+let rec descend bag =
+  let count, _ = bag in
+  let bags = contents bag in
+  let nums = List.map (fun x -> descend x) bags in
+  (if count = 0 then 1 else count) * List.fold_left (fun acc x -> acc + x) 1 nums
 
 let () =
-  let data = In_channel.read_lines "test" in
+  let data = In_channel.read_lines "input" in
   List.iter (fun x -> parse x) data;
-  let rec iterate bags =
-    let newbags = descend bags in
-    print_endline ("NEWBAGS: " ^ String.concat "|" (List.map (fun (_, x) -> x) newbags));
-    if List.length newbags = 0
-    then bags
-    else (iterate newbags) @ bags
-  in
-  let bags = iterate [(0, "shiny gold")] in
-  List.iter (fun (x, y) -> print_endline (" " ^ string_of_int x ^ ":" ^ y)) bags
-  (* print_endline ("Part 2: found " ^ string_of_int (bagcount - 1)) *)
+  print_endline ("Part 2: you need " ^ (string_of_int ((descend (1, "shiny gold")) -1)) ^ " bags")
