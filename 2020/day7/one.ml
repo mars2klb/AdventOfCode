@@ -1,31 +1,44 @@
-let outer_rgx = Str.regexp "^\\([a-z ]+\\).bags contain"
-let inner_rgx = Str.regexp ".*\\([0-9]+\\).\\([a-z ]+\\) bag.?"
-let table = Hashtbl.create 1024
+let outer_rgx = Str.regexp "^\\([a-z ]+\\) bags contain"
+let inner_rgx = Str.regexp "\\([0-9]+\\) \\([a-z ]+\\) bag.?"
 
-let parse line =
-  print_endline line;
+let parse entry table rtable =
+  let line = Str.global_replace (Str.regexp ",") "" entry in
   if Str.string_match outer_rgx line 0 then
     let outer = Str.matched_group 1 line in
-    let rec extract offset =
-      print_endline (" offset: " ^ string_of_int offset ^ ": " ^ String.sub line offset ((String.length line) - offset));
-      if Str.string_match inner_rgx line offset then
-        let inner = Str.matched_group 2 line in
-        let inner_count = Str.matched_group 1 line in
-        print_endline ("   outer:" ^ outer ^ "   inner:" ^ inner ^ "   count:" ^ inner_count);
+    let rec extract rest =
+      if Str.string_match inner_rgx rest 0 then
+        let inner = Str.matched_group 2 rest in
+        let inner_count = Str.matched_group 1 rest in
+        (try let _ = Hashtbl.find table outer in ()
+         with Not_found -> Hashtbl.add table outer (int_of_string inner_count));
         (try
-          let bags = Hashtbl.find table outer in
-          Hashtbl.add table outer (bags @ [(inner_count, inner)])
-        with Not_found -> Hashtbl.add table outer []);
-        (* extract ((String.length inner) + offset) *)
-        extract (Str.match_end ())
-      else
-        print_endline ("unmatch")
+           let bags = Hashtbl.find rtable inner in
+           Hashtbl.remove rtable inner;
+           Hashtbl.add rtable inner (bags @ [outer])
+         with Not_found -> Hashtbl.add rtable inner [outer]);
+        extract (String.trim (Str.string_after rest (Str.match_end ())))
     in
-    extract (Str.match_end ())
-    (* extract (String.length outer) *)
+    extract (String.trim (Str.string_after line (Str.match_end ())))
+
+let expand bags rtable =
+  let allbags = ref [] in
+  List.iter (fun x ->
+      try
+        let baglist = Hashtbl.find rtable x in
+        allbags := !allbags @ baglist
+      with Not_found -> ()) bags;
+  List.sort_uniq compare !allbags
 
 let () =
-  let data = In_channel.read_lines "test" in
-  List.iter (fun x -> parse x) data;
-  Hashtbl.iter (fun k v -> print_endline ("key:" ^ k ^ " value:" ^ String.concat " "
-                                                                     (List.map (fun (_, x) -> x) v))) table
+  let data = In_channel.read_lines "input" in
+  let table = Hashtbl.create 1024 in
+  let rtable = Hashtbl.create 1024 in
+  List.iter (fun x -> parse x table rtable) data;
+  let rec iterate bags =
+    let newbags = expand bags rtable in
+    if List.length newbags = 0
+    then bags
+    else (iterate newbags) @ bags
+  in
+  let bags = List.sort_uniq compare (iterate ["shiny gold"]) in
+  print_endline ("Part 1: found " ^ string_of_int ((List.length bags) - 1))
