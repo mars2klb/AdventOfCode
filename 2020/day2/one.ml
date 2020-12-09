@@ -14,7 +14,7 @@ let is_valid entry =
   let letter_count = String.length letters in
   letter_count >= atleast && letter_count <= atmost
 
-let () =
-  let data = In_channel.read_lines "input" in
+let run () =
+  let data = Lib.In_channel.read_lines "day2/input" in
   let good = List.filter is_valid data in
-  print_endline ("Part 1: found " ^ string_of_int (List.length good) ^ " good passwords")
+  string_of_int (List.length good) ^ " good passwords"

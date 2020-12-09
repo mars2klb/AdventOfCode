@@ -12,9 +12,9 @@ let find_equal var data =
   in
   look_for var data
 
-let () =
-  let data = In_channel.read_lines "input"
+let run () =
+  let data = Lib.In_channel.read_lines "day1/input"
            |> List.map int_of_string in
   match (find_equal (List.hd data) data) with
-  | (match1, match2) when (match1 * match2 != 0) ->  print_endline ("Part 1: " ^ string_of_int match1 ^ " <-> " ^ string_of_int match2 ^ " :: " ^ string_of_int (match1 * match2))
+  | (match1, match2) when (match1 * match2 != 0) -> string_of_int match1 ^ " <-> " ^ string_of_int match2 ^ " :: " ^ string_of_int (match1 * match2)
   | _ -> raise (Failure "not found")

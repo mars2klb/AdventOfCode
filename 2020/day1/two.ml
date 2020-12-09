@@ -14,12 +14,12 @@ let find_less_than var data =
 let rec solve tup data =
   let l, r = tup in
   match data with
-  | hd :: tl when hd + l + r = 2020 -> hd * l * r
+  | hd :: _ when hd + l + r = 2020 -> hd * l * r
   | _ :: tl -> solve tup tl
   | [] -> 0
 
-let () =
-  let data = In_channel.read_lines "input" |> List.map int_of_string in
+let run () =
+  let data = Lib.In_channel.read_lines "day1/input" |> List.map int_of_string in
   let potentials = List.flatten (List.map (fun x -> find_less_than x data) data) in
   let answer = List.filter (fun x -> x > 0) (List.map (fun x -> solve x data) potentials) in
-  print_endline ("Part 2: " ^ string_of_int (List.hd answer))
+  string_of_int (List.hd answer)
