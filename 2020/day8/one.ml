@@ -1,3 +1,5 @@
+open Lib
+
 let parse opcode =
   if Str.string_match (Str.regexp "\\([a-z]+\\) \\([+|-][0-9]+\\)") opcode 0
   then

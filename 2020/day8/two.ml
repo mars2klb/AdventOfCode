@@ -28,5 +28,5 @@ let rec churn opcodes offset =
     churn opcodes (offset + 1)
 
 let () =
-  let data = In_channel.read_lines "input" in
+  let data = Lib.In_channel.read_lines "input" in
   print_endline ("Part 2: last good acc: " ^ string_of_int (churn data 0))
