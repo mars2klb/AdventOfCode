@@ -21,6 +21,6 @@ let rec compute opcodes cmd trail =
   | "jmp" -> compute opcodes (offset + delta, acc) (trail @ [offset])
   | _ -> raise (Failure "bad opcode")
 
-let () =
-  let data = In_channel.read_lines "input" in
-  print_endline ("Part 1: last good acc: " ^ string_of_int (compute data (0, 0) []))
+let run () =
+  let data = In_channel.read_lines "day8/input" in
+  "last good acc: " ^ string_of_int (compute data (0, 0) [])

@@ -27,6 +27,6 @@ let rec churn opcodes offset =
   with Failure _ ->
     churn opcodes (offset + 1)
 
-let () =
-  let data = Lib.In_channel.read_lines "input" in
-  print_endline ("Part 2: last good acc: " ^ string_of_int (churn data 0))
+let run () =
+  let data = Lib.In_channel.read_lines "day8/input" in
+  "last good acc: " ^ string_of_int (churn data 0)
