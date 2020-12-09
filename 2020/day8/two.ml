@@ -21,7 +21,6 @@ let flip opcode =
   | _ -> opcode
 
 let rec churn opcodes offset =
-  if offset > ((List.length opcodes) - 1) then raise (Failure "nothing found");
   let iteration = List.mapi (fun idx code -> if idx = offset then flip code else code) opcodes in
   try
     compute iteration (0, 0) []
