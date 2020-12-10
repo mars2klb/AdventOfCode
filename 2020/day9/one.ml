@@ -2,11 +2,6 @@ let dump factor =
   let x, y = factor in
   "(" ^ string_of_int x ^ ", " ^ string_of_int y ^ ")"
 
-let ( -- ) i j = 
-  let rec aux n acc =
-    if n < i then acc else aux (n-1) (n :: acc)
-  in aux j []
-
 let get_window numbers offset preamble =
   Array.sub numbers offset preamble
 
