@@ -40,8 +40,13 @@ EOF
               touch $day/test $day/instructions.troff $day/input
           fi
           ;;
+
     clean)
         dune clean ;;
+
+    doc)
+        9 tbl $day/instructions.troff | 9 troff -ms | 9 tr2post | open -a Preview -f ;;
+
     *) check_day        
         dune build
         echo "  >> $day"
