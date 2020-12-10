@@ -34,4 +34,4 @@ let run () =
           let window = get_window data (idx - preamble) preamble in
           validate x (generate_factors x window) window) data;
     "failed to find anything"
-  with Failure x -> "bad: " ^ x
+  with Failure x -> x
