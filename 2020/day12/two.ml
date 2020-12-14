@@ -14,38 +14,58 @@ let rotate_waypoint direction degrees from =
   let wx, wy = (delta !ship from) in
   let sx, sy = !ship in
   let foo = match (start + (360 / degrees)) mod 4 with
-      (*
-       *   0
-       * 3 + 1
-       *   2
-       *)
     | 1 -> (sx + wx, sy + wy)
     | 2 -> (sx - wy, sy + wx)
     | 3 -> (sx - wx, sy - wy)
     | 0 -> (sx - wx, sy + wy)
     | _ -> raise (Failure "spinning out of control")
   in
-  print_endline (" ROTATED: " ^ string_of_int degrees ^ "[" ^ string_of_int ((start + (360 / degrees)) mod 4) ^ ") " ^ Ahoy.dump_coord foo);
+  print_endline (" ROTATED: " ^ string_of_int degrees ^ "[" ^ string_of_int ((start + (360 / degrees)) mod 4) ^ "] " ^ Ahoy.dump_coord foo);
   foo
 
 let move_ship toward from =
   let _, distance = toward in
   let cx, cy = !ship in
   let x, y = (delta !ship from) in
-  let dx, dy = (cx + (mult x distance), cy + (mult y distance)) in
+  let dx, dy = (mult x distance, mult y distance) in
+  print_endline (" move ship from: " ^ Ahoy.dump_coord !ship);
   print_endline ("  waypoint " ^ Ahoy.dump_coord from);
   print_endline (" POSITION CHANGE: distance:" ^ string_of_int distance
-                 ^ "|" ^ string_of_int x ^ ", " ^ string_of_int y);
+                 ^ " delta:" ^ string_of_int x ^ ", " ^ string_of_int y);
   print_endline (" POSITION DX: " ^ string_of_int dx ^ ", " ^ string_of_int dy);
   let position = match !Ahoy.heading with
-  | 'E' -> (x + dx, y + dy)
-  | 'W' -> (x - dx, y + dy)
-  | 'N' -> (x + dx, y + dy)
-  | 'S' -> (x - dx, y - dy)
+  | 'E' -> (cx + dx, cy + dy)
+  | 'W' -> (cx - dx, cy + dy)
+  | 'N' -> (cx + dx, cy + dy)
+  | 'S' -> (cx - dx, cy - dy)
   | _ -> raise (Failure "ship lost")
   in
   ship := position;
-  position
+  print_endline (" ship is at: " ^ Ahoy.dump_coord !ship);
+  let px, py = position in
+  print_endline ("  waypoint end:" ^ Ahoy.dump_coord (x + px, y + py));
+  (x + px, y + py)
+
+(* let move_ship toward from =
+ *   let _, distance = toward in
+ *   let cx, cy = !ship in
+ *   let x, y = (delta !ship from) in
+ *   let dx, dy = (cx + (mult x distance), cy + (mult y distance)) in
+ *   print_endline (" move ship from: " ^ Ahoy.dump_coord !ship);
+ *   print_endline ("  waypoint " ^ Ahoy.dump_coord from);
+ *   print_endline (" POSITION CHANGE: distance:" ^ string_of_int distance
+ *                  ^ " delta:" ^ string_of_int x ^ ", " ^ string_of_int y);
+ *   print_endline (" POSITION DX: " ^ string_of_int dx ^ ", " ^ string_of_int dy);
+ *   let position = match !Ahoy.heading with
+ *     | 'E' -> (x + dx, y + dy)
+ *     | 'W' -> (x - dx, y + dy)
+ *     | 'N' -> (x + dx, y + dy)
+ *     | 'S' -> (x - dx, y - dy)
+ *     | _ -> raise (Failure "ship lost")
+ *   in
+ *   ship := position;
+ *   print_endline (" ship is at: " ^ Ahoy.dump_coord !ship);
+ *   position *)
 
 let move toward from =
   let direction, distance = toward in
