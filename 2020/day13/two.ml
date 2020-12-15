@@ -1,3 +1,5 @@
+(* check out Chinese Remainder Theorem *)
+
 let dump route =
   let idx, bus = route in
   "(" ^ string_of_int idx ^ ":" ^ string_of_int bus ^ ")"
