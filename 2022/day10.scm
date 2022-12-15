@@ -3,7 +3,6 @@
 (load "common.scm")
 
 (define (compute reg opcodes)
-  ; (show #t "opcodes:" opcodes nl)
   (cond ((or
           (null? opcodes)
           (string-null? (car opcodes))) '())
@@ -11,7 +10,6 @@
         (else
          (let* ((value (string->number (cadr (string-split (car opcodes)))))
                 (value+reg (+ reg value)))
-           ;(show #t " add:" value " to:" reg nl)
            (append (list reg value+reg) (compute value+reg (cdr opcodes)))))))
 
 (define (slurp)
@@ -19,16 +17,31 @@
     (if (eof-object? line) '()
         (cons line (slurp)))))
 
+(define (render idx reg)
+  (let ((pos (remainder idx 40)))
+    (if (or (= reg pos)
+            (= reg (- pos 1))
+            (= reg (+ pos 1)))
+        (display (yellow "#"))
+        (display "."))
+    (if (= (modulo idx 40) 39) (newline))
+    (+ 1 idx)))
+
 (define (part1)
   (let* ((points '(20 60 100 140 180 220))
          (values (compute 1 (slurp)))
          (tape (map (lambda (i)
-                      ;(show #t "times " i " by " (list-ref values (- i 2)) nl)
                       (* i (list-ref values (- i 2))))
                     points)))
-    ;(show #t "tape:" tape nl)
-    ;(show #t "values:" values nl)
     (apply + tape)))
 
+(define (part2)
+  (let ((values (append '(1) (compute 1 (slurp)))))
+    (let loop ((i 0))
+      (cond ((= 0 i) (begin (display (yellow "#")) (loop 1)))
+            ((>= i (length values)) #f)
+            (else
+             (loop (render i (list-ref values i))))))))
 
 (fire "day10.input" "part1" part1)
+(fire "day10.input" "part2" part2)
